@@ -18,6 +18,7 @@
 		53FB6AAB17416AD5008B6C3E /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 53FB6AAA17416AD5008B6C3E /* Default-568h@2x.png */; };
 		53FB6AAE17416AD5008B6C3E /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53FB6AAC17416AD5008B6C3E /* MainStoryboard.storyboard */; };
 		53FB6AB117416AD5008B6C3E /* TransmitterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 53FB6AB017416AD5008B6C3E /* TransmitterViewController.m */; };
+		53FB6AB817416C74008B6C3E /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53FB6AB717416C74008B6C3E /* CoreMotion.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		53FB6AAD17416AD5008B6C3E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		53FB6AAF17416AD5008B6C3E /* TransmitterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TransmitterViewController.h; sourceTree = "<group>"; };
 		53FB6AB017416AD5008B6C3E /* TransmitterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TransmitterViewController.m; sourceTree = "<group>"; };
+		53FB6AB717416C74008B6C3E /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53FB6AB817416C74008B6C3E /* CoreMotion.framework in Frameworks */,
 				53FB6A9517416AD5008B6C3E /* UIKit.framework in Frameworks */,
 				53FB6A9717416AD5008B6C3E /* Foundation.framework in Frameworks */,
 				53FB6A9917416AD5008B6C3E /* CoreGraphics.framework in Frameworks */,
@@ -56,6 +59,7 @@
 		53FB6A8817416AD5008B6C3E = {
 			isa = PBXGroup;
 			children = (
+				53FB6AB717416C74008B6C3E /* CoreMotion.framework */,
 				53FB6A9A17416AD5008B6C3E /* transmitter */,
 				53FB6A9317416AD5008B6C3E /* Frameworks */,
 				53FB6A9217416AD5008B6C3E /* Products */,
