@@ -30,13 +30,6 @@
     
     // we want updates at 60Hz
     self.motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
-    
-    // start device motion updates
-    [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
-                                            withHandler:^(CMDeviceMotion *motion, NSError *error)
-    {
-        // setup a new packet with the gyro and accelerometer data
-    }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -110,7 +103,7 @@
         NSString *pairRequestString = [NSString stringWithFormat:@"Available iOS-Transmitter %@:%d",
                                        [self wifiIPAddress],
                                        _transmitterSocket.localPort];
-        pairRequestData = [pairRequestString dataUsingEncoding:NSUTF8StringEncoding];
+        pairRequestData = [pairRequestString dataUsingEncoding:NSNonLossyASCIIStringEncoding];
     }
     
     return pairRequestData;
@@ -119,13 +112,14 @@
 - (IBAction)pairButtonTapped:(id)sender {
     NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
     UInt16 const PAIRING_SERVER_PORT = 7247;
+    NSTimeInterval const PAIRING_RECEIVE_TIMEOUT = 5 * 60;
     
     [self.transmitterSocket sendData:[self pairRequestData]
                               toHost:PAIRING_SERVER_ADDRESS
                                 port:PAIRING_SERVER_PORT
                          withTimeout:30
-                                 tag:1];
-    [self.transmitterSocket receiveWithTimeout:30 tag:2];
+                                 tag:0];
+    [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
 }
 
 - (BOOL)onUdpSocket:(AsyncUdpSocket *)sock
@@ -139,8 +133,58 @@
     
     self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
+    [self startMotionUpdates];
    
     return YES;
+}
+
+#pragma mark - Sensor Handling
+- (void)startMotionUpdates {
+    if (!self.motionManager.isDeviceMotionActive) {
+        // start device motion updates
+        [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
+                                                withHandler:^(CMDeviceMotion *motion, NSError *error)
+         {
+             // setup a new packet with the gyro and accelerometer data
+             const char TRANSMITTER_PACKET_HEADER = 'T';
+             const char TRANSMITTER_ROTATION_SEPARATOR = 'R';
+             const char TRANSMITTER_ACCEL_SEPARATOR = 'A';
+             
+             NSMutableData *sensorData = [NSMutableData data];
+             
+             // append the transmitter packet header and then rotation data separator
+             [sensorData appendBytes:&TRANSMITTER_PACKET_HEADER length:sizeof(TRANSMITTER_PACKET_HEADER)];
+             [sensorData appendBytes:&TRANSMITTER_ROTATION_SEPARATOR length:sizeof(TRANSMITTER_ROTATION_SEPARATOR)];
+             
+             // cast each of the rotation doubles to a four byte float
+             Float32 rotationRates[3];
+             rotationRates[0] = (Float32) motion.rotationRate.x;
+             rotationRates[1] = (Float32) motion.rotationRate.y;
+             rotationRates[2] = (Float32) motion.rotationRate.z;
+             
+             // append the three floats for rotation
+             [sensorData appendBytes:rotationRates length:sizeof(rotationRates)];
+             
+             // append the accelerometer data separator 
+             [sensorData appendBytes:&TRANSMITTER_ACCEL_SEPARATOR length:sizeof(TRANSMITTER_ACCEL_SEPARATOR)];
+             
+             // cast each of the accelerometer doubles to a four byte float
+             Float32 accelerations[3];
+             accelerations[0] = (Float32) motion.userAcceleration.x;
+             accelerations[1] = (Float32) motion.userAcceleration.y;
+             accelerations[2] = (Float32) motion.userAcceleration.z;
+             
+             // append the three floats for acceleration
+             [sensorData appendBytes:accelerations length:sizeof(accelerations)];
+             
+             // send the prepared packet to the interface client we are paired to
+             [self.transmitterSocket sendData:sensorData
+                                       toHost:self.interfaceAddress
+                                         port:self.interfacePort
+                                  withTimeout:30
+                                          tag:0];
+         }];
+    }
 }
 
 @end
