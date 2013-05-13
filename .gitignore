@@ -15,3 +15,7 @@ profile
 DerivedData
 .idea/
 *.hmap
+
+# cocoapods
+transmitter.xcworkspace
+Pods/

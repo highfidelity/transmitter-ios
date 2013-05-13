@@ -22,6 +22,8 @@
 {
     [super viewDidLoad];
     
+    [self setupPairingSocket];
+    
     // we want updates at 60Hz
     _motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
     
@@ -45,6 +47,14 @@
     }
     
     return _motionManager;
+}
+
+- (void)setupPairingSocket {
+    
+}
+
+- (IBAction)pairButtonTapped:(id)sender {
+    
 }
 
 @end
