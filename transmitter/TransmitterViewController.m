@@ -13,7 +13,7 @@
 
 #import "TransmitterViewController.h"
 
-@interface TransmitterViewController ()
+@interface TransmitterViewController () <AsyncUdpSocketDelegate>
 
 @property (nonatomic, strong) CMMotionManager *motionManager;
 @property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
@@ -53,11 +53,20 @@
 
 - (AsyncUdpSocket *)transmitterSocket {    
     if (!_transmitterSocket) {
+        
+        UInt16 const SOCKET_BIND_PORT = 6472;
+        
         _transmitterSocket = [[AsyncUdpSocket alloc] initWithDelegate:self];
+        
+        if ([_transmitterSocket bindToPort:SOCKET_BIND_PORT error:nil]) {
+            NSLog(@"Socket successfully bound to port %d", _transmitterSocket.localPort);
+        }
     }
     
     return _transmitterSocket;
 }
+
+#pragma mark - Pairing
 
 - (NSString *)wifiIPAddress {
     // the following is a copy-paste from
@@ -96,8 +105,10 @@
     static NSData *pairRequestData = nil;
     
     if (!pairRequestData) {
-        NSString *pairRequestString = [NSString stringWithFormat:@"Available iOS-Transmitter %@", [self wifiIPAddress]];
-        NSLog(@"The pair request string so far is %@", pairRequestString);
+        NSString *pairRequestString = [NSString stringWithFormat:@"Available iOS-Transmitter %@:%d",
+                                       [self wifiIPAddress],
+                                       _transmitterSocket.localPort];
+        pairRequestData = [pairRequestString dataUsingEncoding:NSUTF8StringEncoding];
     }
     
     return pairRequestData;
