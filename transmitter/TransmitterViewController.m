@@ -136,8 +136,8 @@
     
     NSString *interfaceSocketString = [[NSString alloc] initWithData:data encoding:NSNonLossyASCIIStringEncoding];
     NSRange colonRange = [interfaceSocketString rangeOfString:@":"];
-    self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
     
+    self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
    
     return YES;
