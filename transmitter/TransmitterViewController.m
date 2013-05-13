@@ -17,6 +17,8 @@
 
 @property (nonatomic, strong) CMMotionManager *motionManager;
 @property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
+@property (nonatomic, strong) NSString *interfaceAddress;
+@property (nonatomic) UInt16 interfacePort;
 
 @end
 
@@ -27,11 +29,11 @@
     [super viewDidLoad];
     
     // we want updates at 60Hz
-    _motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
+    self.motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
     
     // start device motion updates
-    [_motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
-                                        withHandler:^(CMDeviceMotion *motion, NSError *error)
+    [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
+                                            withHandler:^(CMDeviceMotion *motion, NSError *error)
     {
         // setup a new packet with the gyro and accelerometer data
     }];
@@ -130,7 +132,14 @@
      didReceiveData:(NSData *)data
             withTag:(long)tag
            fromHost:(NSString *)host
-               port:(UInt16)port {    
+               port:(UInt16)port {
+    
+    NSString *interfaceSocketString = [[NSString alloc] initWithData:data encoding:NSNonLossyASCIIStringEncoding];
+    NSRange colonRange = [interfaceSocketString rangeOfString:@":"];
+    self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
+    
+    self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
+   
     return YES;
 }
 
