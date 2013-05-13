@@ -123,6 +123,15 @@
                                 port:PAIRING_SERVER_PORT
                          withTimeout:30
                                  tag:1];
+    [self.transmitterSocket receiveWithTimeout:30 tag:2];
+}
+
+- (BOOL)onUdpSocket:(AsyncUdpSocket *)sock
+     didReceiveData:(NSData *)data
+            withTag:(long)tag
+           fromHost:(NSString *)host
+               port:(UInt16)port {    
+    return YES;
 }
 
 @end
