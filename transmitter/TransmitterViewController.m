@@ -133,6 +133,7 @@
     
     self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
+    
     [self startMotionUpdates];
    
     return YES;
