@@ -54,11 +54,11 @@
 - (AsyncUdpSocket *)transmitterSocket {    
     if (!_transmitterSocket) {
         
-        UInt16 const SOCKET_BIND_PORT = 6472;
+        UInt16 const TRANSMITTER_BIND_PORT = 6472;
         
         _transmitterSocket = [[AsyncUdpSocket alloc] initWithDelegate:self];
         
-        if ([_transmitterSocket bindToPort:SOCKET_BIND_PORT error:nil]) {
+        if ([_transmitterSocket bindToPort:TRANSMITTER_BIND_PORT error:nil]) {
             NSLog(@"Socket successfully bound to port %d", _transmitterSocket.localPort);
         }
     }
