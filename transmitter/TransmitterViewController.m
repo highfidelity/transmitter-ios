@@ -21,6 +21,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *pairButton;
 @property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
+@property (weak, nonatomic) IBOutlet UILabel *pairedInfoLabel;
 @property (nonatomic) UInt16 interfacePort;
 @property (nonatomic) bool isPairing;
 
@@ -152,6 +153,9 @@
             NSLog(@"Cancelling the pair request");
         }
       
+        // clear the pairInfoLabel
+        self.pairedInfoLabel.text = nil;
+        
         // flip the pair button back to the right state
         self.isPairing = NO;
         sender.selected = NO;
@@ -196,6 +200,8 @@
     if (!self.motionManager.isDeviceMotionActive) {
         NSLog(@"Staring device motion updates now");
         
+        self.isPairing = NO;
+        
         // start device motion updates
         [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
                                                 withHandler:^(CMDeviceMotion *motion, NSError *error)
@@ -233,14 +239,16 @@
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
              dispatch_async(dispatch_get_main_queue(), ^{
-                 self.isPairing = NO;
-                 
-                 // send the prepared packet to the interface client we are paired to
-                 [self.transmitterSocket sendData:sensorData
-                                           toHost:self.interfaceAddress
-                                             port:self.interfacePort
-                                      withTimeout:30
-                                              tag:0];
+                 if (self.interfaceAddress) {                     
+                     self.pairedInfoLabel.text = [NSString stringWithFormat:@"%@ on %d", self.interfaceAddress, self.interfacePort];
+                     
+                     // send the prepared packet to the interface client we are paired to
+                     [self.transmitterSocket sendData:sensorData
+                                               toHost:self.interfaceAddress
+                                                 port:self.interfacePort
+                                          withTimeout:30
+                                                  tag:0];
+                 }
              });             
          }];
     }

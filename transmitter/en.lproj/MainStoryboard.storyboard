@@ -36,12 +36,20 @@
                                 <rect key="frame" x="144" y="496" width="32" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                             </imageView>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="qxx-UA-FIy">
+                                <rect key="frame" x="20" y="309" width="280" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.20000000000000001" green="0.20000000000000001" blue="0.20000000000000001" alpha="1" colorSpace="calibratedRGB"/>
                     </view>
                     <connections>
                         <outlet property="bottomPentagonImageView" destination="gph-1G-kCh" id="6DA-In-7Ib"/>
                         <outlet property="pairButton" destination="vew-A3-FIH" id="Ine-HN-jjw"/>
+                        <outlet property="pairedInfoLabel" destination="qxx-UA-FIy" id="A0V-0Q-TZm"/>
                         <outlet property="topPentagonImageView" destination="Sga-IW-PP4" id="BX6-XU-hfI"/>
                     </connections>
                 </viewController>
@@ -61,6 +69,7 @@
                 <relationship kind="action" name="pairButtonTapped:" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="bottomPentagonImageView" candidateClass="UIImageView"/>
                 <relationship kind="outlet" name="pairButton" candidateClass="UIButton"/>
+                <relationship kind="outlet" name="pairedInfoLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="topPentagonImageView" candidateClass="UIImageView"/>
             </relationships>
         </class>
