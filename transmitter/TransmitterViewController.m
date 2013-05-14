@@ -127,7 +127,7 @@
         self.interfacePort = 0;
         
         // change the label on the button back to pair
-        [sender setTitle:@"Pair" forState:UIControlStateNormal];
+        self.pairButton.selected = NO;
     } else {
         NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
         UInt16 const PAIRING_SERVER_PORT = 7247;
@@ -139,6 +139,8 @@
                              withTimeout:30
                                      tag:0];
         [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
+        
+        self.pairButton.enabled = NO;
     }
 }
 
@@ -155,7 +157,8 @@
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
     
     NSLog(@"Pairing server has told us to talk to client at %@:%d", self.interfaceAddress, self.interfacePort);
-    [self.pairButton setTitle:@"Unpair" forState:UIControlStateNormal];
+    self.pairButton.enabled = YES;
+    self.pairButton.selected = YES;
     
     [self startMotionUpdates];
    
