@@ -80,8 +80,13 @@
         temp_addr = interfaces;
         while (temp_addr != NULL) {
             if( temp_addr->ifa_addr->sa_family == AF_INET) {
+
+                NSString *wifiInterface = [[[UIDevice currentDevice] model] hasSuffix:@"Simulator"]
+                    ? @"en1"
+                    : @"en0";
+                
                 // Check if interface is en0 which is the wifi connection on the iPhone
-                if ([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"]) {
+                if ([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:wifiInterface]) {
                     // Get NSString from C String
                     address = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
                 }
