@@ -127,6 +127,7 @@
 - (IBAction)pairButtonTapped:(UIButton *)sender {
     if (self.interfaceAddress) {
         // user wants to unpair the device
+        NSLog(@"Unpairing - stopping device motion updates");
         
         // stop asking the motion manager for device motion updates
         [self.motionManager stopDeviceMotionUpdates];
@@ -136,7 +137,8 @@
         self.interfacePort = 0;
         
         // change the label on the button back to pair
-        self.pairButton.selected = NO;
+        [sender setImage:nil forState:UIControlStateNormal];
+        sender.selected = NO;
     } else {
         NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
         UInt16 const PAIRING_SERVER_PORT = 7247;
@@ -149,7 +151,7 @@
                                      tag:0];
         [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
         
-        self.pairButton.enabled = NO;
+        [sender setImage:[UIImage imageNamed:@"cancel-pairing.png"] forState:UIControlStateNormal];
     }
 }
 
@@ -166,7 +168,6 @@
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
     
     NSLog(@"Pairing server has told us to talk to client at %@:%d", self.interfaceAddress, self.interfacePort);
-    self.pairButton.enabled = YES;
     self.pairButton.selected = YES;
     
     [self startMotionUpdates];
@@ -215,7 +216,10 @@
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
-             dispatch_async(dispatch_get_main_queue(), ^{                 
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 
+                 [self.pairButton setImage:nil forState:UIControlStateNormal];
+                 
                  // send the prepared packet to the interface client we are paired to
                  [self.transmitterSocket sendData:sensorData
                                            toHost:self.interfaceAddress
