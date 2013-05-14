@@ -13,6 +13,8 @@
 		531759891742EAAF00C9EFD7 /* paired@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 531759831742EAAF00C9EFD7 /* paired@2x.png */; };
 		5317598A1742EAAF00C9EFD7 /* pairing.png in Resources */ = {isa = PBXBuildFile; fileRef = 531759841742EAAF00C9EFD7 /* pairing.png */; };
 		5317598B1742EAAF00C9EFD7 /* pairing@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 531759851742EAAF00C9EFD7 /* pairing@2x.png */; };
+		5317598E1742EDFF00C9EFD7 /* pentagon.png in Resources */ = {isa = PBXBuildFile; fileRef = 5317598C1742EDFF00C9EFD7 /* pentagon.png */; };
+		5317598F1742EDFF00C9EFD7 /* pentagon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5317598D1742EDFF00C9EFD7 /* pentagon@2x.png */; };
 		53FB6A9517416AD5008B6C3E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53FB6A9417416AD5008B6C3E /* UIKit.framework */; };
 		53FB6A9717416AD5008B6C3E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53FB6A9617416AD5008B6C3E /* Foundation.framework */; };
 		53FB6A9917416AD5008B6C3E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53FB6A9817416AD5008B6C3E /* CoreGraphics.framework */; };
@@ -37,6 +39,8 @@
 		531759831742EAAF00C9EFD7 /* paired@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "paired@2x.png"; sourceTree = "<group>"; };
 		531759841742EAAF00C9EFD7 /* pairing.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pairing.png; sourceTree = "<group>"; };
 		531759851742EAAF00C9EFD7 /* pairing@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pairing@2x.png"; sourceTree = "<group>"; };
+		5317598C1742EDFF00C9EFD7 /* pentagon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pentagon.png; sourceTree = "<group>"; };
+		5317598D1742EDFF00C9EFD7 /* pentagon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pentagon@2x.png"; sourceTree = "<group>"; };
 		53FB6A9117416AD5008B6C3E /* transmitter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = transmitter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53FB6A9417416AD5008B6C3E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		53FB6A9617416AD5008B6C3E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -77,6 +81,8 @@
 		5317597F1742EAAF00C9EFD7 /* images */ = {
 			isa = PBXGroup;
 			children = (
+				5317598C1742EDFF00C9EFD7 /* pentagon.png */,
+				5317598D1742EDFF00C9EFD7 /* pentagon@2x.png */,
 				531759801742EAAF00C9EFD7 /* pair.png */,
 				531759811742EAAF00C9EFD7 /* pair@2x.png */,
 				531759821742EAAF00C9EFD7 /* paired.png */,
@@ -212,6 +218,8 @@
 				531759891742EAAF00C9EFD7 /* paired@2x.png in Resources */,
 				5317598A1742EAAF00C9EFD7 /* pairing.png in Resources */,
 				5317598B1742EAAF00C9EFD7 /* pairing@2x.png in Resources */,
+				5317598E1742EDFF00C9EFD7 /* pentagon.png in Resources */,
+				5317598F1742EDFF00C9EFD7 /* pentagon@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

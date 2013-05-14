@@ -19,6 +19,8 @@
 @property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
 @property (nonatomic, strong) NSString *interfaceAddress;
 @property (weak, nonatomic) IBOutlet UIButton *pairButton;
+@property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
 @property (nonatomic) UInt16 interfacePort;
 
 @end
@@ -31,6 +33,13 @@
     
     // we want updates at 60Hz
     self.motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    
+    // rotate the bottom pentagon 180 degrees
+    self.bottomPentagonImageView.transform = CGAffineTransformMakeRotation(180 * (M_PI / 180));
 }
 
 - (void)didReceiveMemoryWarning
