@@ -22,6 +22,7 @@
 @property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
 @property (nonatomic) UInt16 interfacePort;
+@property (nonatomic) bool isPairing;
 
 @end
 
@@ -69,6 +70,16 @@
     }
     
     return _transmitterSocket;
+}
+
+- (void)setIsPairing:(bool)isPairing {
+    if (isPairing) {
+        [self.pairButton setImage:[UIImage imageNamed:@"cancel-pairing.png"] forState:UIControlStateNormal];
+    } else {
+        [self.pairButton setImage:nil forState:UIControlStateNormal];
+    }
+    
+    _isPairing = isPairing;
 }
 
 #pragma mark - Pairing
@@ -125,19 +136,24 @@
 }
 
 - (IBAction)pairButtonTapped:(UIButton *)sender {
-    if (self.interfaceAddress) {
-        // user wants to unpair the device
-        NSLog(@"Unpairing - stopping device motion updates");
+    if (self.interfaceAddress || self.isPairing) {
         
-        // stop asking the motion manager for device motion updates
-        [self.motionManager stopDeviceMotionUpdates];
-        
-        // clear the interface client address and port
-        self.interfaceAddress = nil;
-        self.interfacePort = 0;
-        
-        // change the label on the button back to pair
-        [sender setImage:nil forState:UIControlStateNormal];
+        if (!self.isPairing) {
+            // user wants to unpair the device
+            NSLog(@"Unpairing - stopping device motion updates");
+            
+            // stop asking the motion manager for device motion updates
+            [self.motionManager stopDeviceMotionUpdates];
+            
+            // clear the interface client address and port
+            self.interfaceAddress = nil;
+            self.interfacePort = 0;
+        } else {
+            NSLog(@"Cancelling the pair request");
+        }
+      
+        // flip the pair button back to the right state
+        self.isPairing = NO;
         sender.selected = NO;
     } else {
         NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
@@ -151,7 +167,7 @@
                                      tag:0];
         [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
         
-        [sender setImage:[UIImage imageNamed:@"cancel-pairing.png"] forState:UIControlStateNormal];
+        self.isPairing = YES;
     }
 }
 
@@ -217,8 +233,7 @@
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
              dispatch_async(dispatch_get_main_queue(), ^{
-                 
-                 [self.pairButton setImage:nil forState:UIControlStateNormal];
+                 self.isPairing = NO;
                  
                  // send the prepared packet to the interface client we are paired to
                  [self.transmitterSocket sendData:sensorData
