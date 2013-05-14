@@ -178,12 +178,14 @@
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
-             // send the prepared packet to the interface client we are paired to
-             [self.transmitterSocket sendData:sensorData
-                                       toHost:self.interfaceAddress
-                                         port:self.interfacePort
-                                  withTimeout:30
-                                          tag:0];
+             dispatch_async(dispatch_get_main_queue(), ^{
+                 // send the prepared packet to the interface client we are paired to
+                 [self.transmitterSocket sendData:sensorData
+                                           toHost:self.interfaceAddress
+                                             port:self.interfacePort
+                                      withTimeout:30
+                                              tag:0];
+             });             
          }];
     }
 }
