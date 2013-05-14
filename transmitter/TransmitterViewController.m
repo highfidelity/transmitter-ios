@@ -18,6 +18,7 @@
 @property (nonatomic, strong) CMMotionManager *motionManager;
 @property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
 @property (nonatomic, strong) NSString *interfaceAddress;
+@property (weak, nonatomic) IBOutlet UIButton *pairButton;
 @property (nonatomic) UInt16 interfacePort;
 
 @end
@@ -109,17 +110,31 @@
     return pairRequestData;
 }
 
-- (IBAction)pairButtonTapped:(id)sender {
-    NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
-    UInt16 const PAIRING_SERVER_PORT = 7247;
-    NSTimeInterval const PAIRING_RECEIVE_TIMEOUT = 5 * 60;
-    
-    [self.transmitterSocket sendData:[self pairRequestData]
-                              toHost:PAIRING_SERVER_ADDRESS
-                                port:PAIRING_SERVER_PORT
-                         withTimeout:30
-                                 tag:0];
-    [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
+- (IBAction)pairButtonTapped:(UIButton *)sender {
+    if (self.interfaceAddress) {
+        // user wants to unpair the device
+        
+        // stop asking the motion manager for device motion updates
+        [self.motionManager stopDeviceMotionUpdates];
+        
+        // clear the interface client address and port
+        self.interfaceAddress = nil;
+        self.interfacePort = 0;
+        
+        // change the label on the button back to pair
+        [sender setTitle:@"Pair" forState:UIControlStateNormal];
+    } else {
+        NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
+        UInt16 const PAIRING_SERVER_PORT = 7247;
+        NSTimeInterval const PAIRING_RECEIVE_TIMEOUT = 5 * 60;
+        
+        [self.transmitterSocket sendData:[self pairRequestData]
+                                  toHost:PAIRING_SERVER_ADDRESS
+                                    port:PAIRING_SERVER_PORT
+                             withTimeout:30
+                                     tag:0];
+        [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
+    }
 }
 
 - (BOOL)onUdpSocket:(AsyncUdpSocket *)sock
@@ -133,6 +148,9 @@
     
     self.interfaceAddress = [interfaceSocketString substringToIndex:colonRange.location];
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
+    
+    NSLog(@"Pairing server has told us to talk to client at %@:%d", self.interfaceAddress, self.interfacePort);
+    [self.pairButton setTitle:@"Unpair" forState:UIControlStateNormal];
     
     [self startMotionUpdates];
    
@@ -179,6 +197,8 @@
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
              dispatch_async(dispatch_get_main_queue(), ^{
+                 NSLog(@"Sending %d bytes of data to the interface client", sensorData.length);
+                 
                  // send the prepared packet to the interface client we are paired to
                  [self.transmitterSocket sendData:sensorData
                                            toHost:self.interfaceAddress
