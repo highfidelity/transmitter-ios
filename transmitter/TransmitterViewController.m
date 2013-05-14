@@ -165,6 +165,8 @@
 #pragma mark - Sensor Handling
 - (void)startMotionUpdates {
     if (!self.motionManager.isDeviceMotionActive) {
+        NSLog(@"Staring device motion updates now");
+        
         // start device motion updates
         [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
                                                 withHandler:^(CMDeviceMotion *motion, NSError *error)
@@ -201,9 +203,7 @@
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
-             dispatch_async(dispatch_get_main_queue(), ^{
-                 NSLog(@"Sending %d bytes of data to the interface client", sensorData.length);
-                 
+             dispatch_async(dispatch_get_main_queue(), ^{                 
                  // send the prepared packet to the interface client we are paired to
                  [self.transmitterSocket sendData:sensorData
                                            toHost:self.interfaceAddress
