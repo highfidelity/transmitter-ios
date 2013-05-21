@@ -21,10 +21,10 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
 
 @interface TransmitterViewController () <AsyncUdpSocketDelegate>
 
-@property (nonatomic, strong) CMMotionManager *motionManager;
-@property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
-@property (nonatomic, strong) NSString *interfaceAddress;
-@property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
+@property (strong, nonatomic) CMMotionManager *motionManager;
+@property (strong, nonatomic) AsyncUdpSocket *transmitterSocket;
+@property (strong, nonatomic) NSString *interfaceAddress;
+@property (strong, nonatomic) UILongPressGestureRecognizer *longPressRecognizer;
 @property (weak, nonatomic) IBOutlet UIButton *pairButton;
 @property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
@@ -55,9 +55,6 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     
     // rotate the bottom pentagon 180 degrees
     self.bottomPentagonImageView.transform = CGAffineTransformMakeRotation(180 * (M_PI / 180));
-    
-    // add a pan gesture recognizer to the view
-    [self.view addGestureRecognizer:self.panRecognizer];
 }
 
 - (CMMotionManager *)motionManager {
@@ -83,12 +80,13 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     return _transmitterSocket;
 }
 
-- (UIPanGestureRecognizer *)panRecognizer {
-    if (!_panRecognizer) {
-        _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+- (UILongPressGestureRecognizer *)longPressRecognizer {
+    if (!_longPressRecognizer) {
+        _longPressRecognizer = [[UILongPressGestureRecognizer alloc] init];
+        _longPressRecognizer.minimumPressDuration = 0.01;
     }
     
-    return _panRecognizer;
+    return _longPressRecognizer;
 }
 
 - (void)setCurrentState:(TransmitterPairState)currentState {
@@ -102,6 +100,9 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
         self.pairButton.hidden = YES;
         self.pairedInfoLabel.text = [NSString stringWithFormat:@"%@ on %d", self.interfaceAddress, self.interfacePort];
         [UIApplication sharedApplication].idleTimerDisabled = YES;
+        
+        // add the long press gesture recognizer to the view
+        [self.view addGestureRecognizer:self.longPressRecognizer];
     } else {
         self.pairButton.hidden = NO;
         self.pairedInfoLabel.text = nil;
@@ -110,6 +111,9 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
         // clear the interface client address and port
         self.interfaceAddress = nil;
         self.interfacePort = 0;
+        
+        // make sure the long press recognizer isn't attached to the view
+        [self.view removeGestureRecognizer:self.longPressRecognizer];
     }
     
     _currentState = currentState;
@@ -242,6 +246,8 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              const char TRANSMITTER_PACKET_HEADER = 'T';
              const char TRANSMITTER_ROTATION_SEPARATOR = 'R';
              const char TRANSMITTER_ACCEL_SEPARATOR = 'A';
+             const char TRANSMITTER_TOUCH_DOWN_SEPARATOR = 'D';
+             const char TRANSMITTER_TOUCH_UP_SEPARATOR = 'U';
              
              NSMutableData *sensorData = [NSMutableData data];
              
@@ -272,7 +278,24 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
              
+             // send the state of touch, include point if finger is down
+             CGPoint longPressPoint = [self.longPressRecognizer locationInView:self.view];
+             
+             if (!isnan(longPressPoint.x)) {
+                 uint16_t touchPoints[2];
+                 touchPoints[0] = (uint16_t) ((longPressPoint.x / self.view.frame.size.width) * UINT16_MAX);
+                 touchPoints[1] = (uint16_t) (((self.view.frame.size.height - longPressPoint.y) /
+                                              self.view.frame.size.height) * UINT16_MAX);
+                 
+                 [sensorData appendBytes:&TRANSMITTER_TOUCH_DOWN_SEPARATOR length:sizeof(TRANSMITTER_TOUCH_DOWN_SEPARATOR)];
+                 [sensorData appendBytes:touchPoints length:sizeof(touchPoints)];                 
+             } else {
+                 [sensorData appendBytes:&TRANSMITTER_TOUCH_UP_SEPARATOR length:sizeof(TRANSMITTER_TOUCH_UP_SEPARATOR)];
+             }
+             
              dispatch_async(dispatch_get_main_queue(), ^{
+                 // grab the state of the long press recognizer
+                 
                  if (self.interfaceAddress) {                     
                      // send the prepared packet to the interface client we are paired to
                      [self.transmitterSocket sendData:sensorData
@@ -283,14 +306,6 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
                  }
              });             
          }];
-    }
-}
-
-#pragma mark - UIPanGestureRecognizer
-
-- (void)handlePan:(UIPanGestureRecognizer *)panRecognizer {
-    if (panRecognizer.state == UIGestureRecognizerStateBegan)  {
-        NSLog(@"The pan just began");
     }
 }
 
