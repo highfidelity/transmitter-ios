@@ -238,9 +238,9 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              
              // cast each of the rotation doubles to a four byte float
              Float32 rotationRates[3];
-             rotationRates[0] = (Float32) motion.rotationRate.x;
-             rotationRates[1] = (Float32) motion.rotationRate.y;
-             rotationRates[2] = (Float32) motion.rotationRate.z;
+             rotationRates[0] = (Float32) (motion.rotationRate.x * 180 / M_PI);
+             rotationRates[1] = (Float32) (motion.rotationRate.y * 180 / M_PI);
+             rotationRates[2] = (Float32) (motion.rotationRate.z * 180 / M_PI);
              
              // append the three floats for rotation
              [sensorData appendBytes:rotationRates length:sizeof(rotationRates)];
