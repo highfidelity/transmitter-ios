@@ -13,6 +13,12 @@
 
 #import "TransmitterViewController.h"
 
+typedef NS_ENUM(NSUInteger, TransmitterPairState) {
+    TransmitterPairStateSleeping,
+    TransmitterPairStatePairing,
+    TransmitterPairStatePaired
+};
+
 @interface TransmitterViewController () <AsyncUdpSocketDelegate>
 
 @property (nonatomic, strong) CMMotionManager *motionManager;
@@ -23,7 +29,7 @@
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
 @property (weak, nonatomic) IBOutlet UILabel *pairedInfoLabel;
 @property (nonatomic) UInt16 interfacePort;
-@property (nonatomic) bool isPairing;
+@property (nonatomic) TransmitterPairState currentState;
 
 @end
 
@@ -73,14 +79,24 @@
     return _transmitterSocket;
 }
 
-- (void)setIsPairing:(bool)isPairing {
-    if (isPairing) {
+- (void)setCurrentState:(TransmitterPairState)currentState {
+    if (currentState == TransmitterPairStatePairing) {
         [self.pairButton setImage:[UIImage imageNamed:@"cancel-pairing.png"] forState:UIControlStateNormal];
     } else {
         [self.pairButton setImage:nil forState:UIControlStateNormal];
     }
     
-    _isPairing = isPairing;
+    if (currentState == TransmitterPairStatePaired) {
+        self.pairButton.selected = YES;
+        self.pairedInfoLabel.text = [NSString stringWithFormat:@"%@ on %d", self.interfaceAddress, self.interfacePort];
+        [UIApplication sharedApplication].idleTimerDisabled = YES;
+    } else {
+        self.pairButton.selected = NO;
+        self.pairedInfoLabel.text = nil;
+        [UIApplication sharedApplication].idleTimerDisabled = NO;
+    }
+    
+    _currentState = currentState;
 }
 
 #pragma mark - Pairing
@@ -137,9 +153,9 @@
 }
 
 - (IBAction)pairButtonTapped:(UIButton *)sender {
-    if (self.interfaceAddress || self.isPairing) {
+    if (self.currentState != TransmitterPairStateSleeping) {
         
-        if (!self.isPairing) {
+        if (self.currentState == TransmitterPairStatePaired) {
             // user wants to unpair the device
             NSLog(@"Unpairing - stopping device motion updates");
             
@@ -152,13 +168,9 @@
         } else {
             NSLog(@"Cancelling the pair request");
         }
-      
-        // clear the pairInfoLabel
-        self.pairedInfoLabel.text = nil;
         
         // flip the pair button back to the right state
-        self.isPairing = NO;
-        sender.selected = NO;
+        self.currentState = TransmitterPairStateSleeping;
     } else {
         NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
         UInt16 const PAIRING_SERVER_PORT = 7247;
@@ -171,7 +183,7 @@
                                      tag:0];
         [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
         
-        self.isPairing = YES;
+        self.currentState = TransmitterPairStatePairing;
     }
 }
 
@@ -188,8 +200,7 @@
     self.interfacePort = [[interfaceSocketString substringFromIndex:colonRange.location + 1] integerValue];
     
     NSLog(@"Pairing server has told us to talk to client at %@:%d", self.interfaceAddress, self.interfacePort);
-    self.pairButton.selected = YES;
-    
+
     [self startMotionUpdates];
    
     return YES;
@@ -197,10 +208,10 @@
 
 #pragma mark - Sensor Handling
 - (void)startMotionUpdates {
+    self.currentState = TransmitterPairStatePaired;
+    
     if (!self.motionManager.isDeviceMotionActive) {
         NSLog(@"Staring device motion updates now");
-        
-        self.isPairing = NO;
         
         // start device motion updates
         [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
@@ -240,8 +251,6 @@
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  if (self.interfaceAddress) {                     
-                     self.pairedInfoLabel.text = [NSString stringWithFormat:@"%@ on %d", self.interfaceAddress, self.interfacePort];
-                     
                      // send the prepared packet to the interface client we are paired to
                      [self.transmitterSocket sendData:sensorData
                                                toHost:self.interfaceAddress
