@@ -41,6 +41,12 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     
     // we want updates at 60Hz
     self.motionManager.deviceMotionUpdateInterval = 1 / 60.0f;
+    
+    // register for a notification when we go to the background
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleDidEnterBackground)
+                                                 name:@"applicationDidEnterBackground"
+                                               object:nil];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -48,12 +54,6 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     
     // rotate the bottom pentagon 180 degrees
     self.bottomPentagonImageView.transform = CGAffineTransformMakeRotation(180 * (M_PI / 180));
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 - (CMMotionManager *)motionManager {
@@ -94,9 +94,21 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
         self.pairButton.selected = NO;
         self.pairedInfoLabel.text = nil;
         [UIApplication sharedApplication].idleTimerDisabled = NO;
+        
+        // clear the interface client address and port
+        self.interfaceAddress = nil;
+        self.interfacePort = 0;
     }
     
     _currentState = currentState;
+}
+
+#pragma mark - Backgrounding
+
+- (void)handleDidEnterBackground {
+    [self.motionManager stopDeviceMotionUpdates];
+    self.transmitterSocket = nil;
+    self.currentState = TransmitterPairStateSleeping;
 }
 
 #pragma mark - Pairing
@@ -161,10 +173,6 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
             
             // stop asking the motion manager for device motion updates
             [self.motionManager stopDeviceMotionUpdates];
-            
-            // clear the interface client address and port
-            self.interfaceAddress = nil;
-            self.interfacePort = 0;
         } else {
             NSLog(@"Cancelling the pair request");
         }
