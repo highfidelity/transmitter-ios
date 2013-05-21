@@ -24,6 +24,7 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
 @property (nonatomic, strong) CMMotionManager *motionManager;
 @property (nonatomic, strong) AsyncUdpSocket *transmitterSocket;
 @property (nonatomic, strong) NSString *interfaceAddress;
+@property (nonatomic, strong) UIPanGestureRecognizer *panRecognizer;
 @property (weak, nonatomic) IBOutlet UIButton *pairButton;
 @property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
@@ -54,6 +55,9 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     
     // rotate the bottom pentagon 180 degrees
     self.bottomPentagonImageView.transform = CGAffineTransformMakeRotation(180 * (M_PI / 180));
+    
+    // add a pan gesture recognizer to the view
+    [self.view addGestureRecognizer:self.panRecognizer];
 }
 
 - (CMMotionManager *)motionManager {
@@ -79,6 +83,14 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     return _transmitterSocket;
 }
 
+- (UIPanGestureRecognizer *)panRecognizer {
+    if (!_panRecognizer) {
+        _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+    }
+    
+    return _panRecognizer;
+}
+
 - (void)setCurrentState:(TransmitterPairState)currentState {
     if (currentState == TransmitterPairStatePairing) {
         [self.pairButton setImage:[UIImage imageNamed:@"cancel-pairing.png"] forState:UIControlStateNormal];
@@ -87,11 +99,11 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     }
     
     if (currentState == TransmitterPairStatePaired) {
-        self.pairButton.selected = YES;
+        self.pairButton.hidden = YES;
         self.pairedInfoLabel.text = [NSString stringWithFormat:@"%@ on %d", self.interfaceAddress, self.interfacePort];
         [UIApplication sharedApplication].idleTimerDisabled = YES;
     } else {
-        self.pairButton.selected = NO;
+        self.pairButton.hidden = NO;
         self.pairedInfoLabel.text = nil;
         [UIApplication sharedApplication].idleTimerDisabled = NO;
         
@@ -215,6 +227,7 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
 }
 
 #pragma mark - Sensor Handling
+
 - (void)startMotionUpdates {
     self.currentState = TransmitterPairStatePaired;
     
@@ -270,6 +283,14 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
                  }
              });             
          }];
+    }
+}
+
+#pragma mark - UIPanGestureRecognizer
+
+- (void)handlePan:(UIPanGestureRecognizer *)panRecognizer {
+    if (panRecognizer.state == UIGestureRecognizerStateBegan)  {
+        NSLog(@"The pan just began");
     }
 }
 

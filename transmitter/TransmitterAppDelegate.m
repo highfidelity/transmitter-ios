@@ -11,6 +11,10 @@
 @implementation TransmitterAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    // hide the top the status bar
+    application.statusBarHidden = YES;
+    
     return YES;
 }
 							
