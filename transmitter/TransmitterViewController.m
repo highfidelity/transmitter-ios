@@ -237,10 +237,11 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              [sensorData appendBytes:&TRANSMITTER_ROTATION_SEPARATOR length:sizeof(TRANSMITTER_ROTATION_SEPARATOR)];
              
              // cast each of the rotation doubles to a four byte float
+             // convert them to degrees per second and swap Z and Y to match convention
              Float32 rotationRates[3];
              rotationRates[0] = (Float32) (motion.rotationRate.x * 180 / M_PI);
-             rotationRates[1] = (Float32) (motion.rotationRate.y * 180 / M_PI);
-             rotationRates[2] = (Float32) (motion.rotationRate.z * 180 / M_PI);
+             rotationRates[1] = (Float32) (motion.rotationRate.z * 180 / M_PI);
+             rotationRates[2] = (Float32) (motion.rotationRate.y * 180 / M_PI);
              
              // append the three floats for rotation
              [sensorData appendBytes:rotationRates length:sizeof(rotationRates)];
@@ -249,10 +250,11 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              [sensorData appendBytes:&TRANSMITTER_ACCEL_SEPARATOR length:sizeof(TRANSMITTER_ACCEL_SEPARATOR)];
              
              // cast each of the accelerometer doubles to a four byte float
+             // the userAcceleration is corrected with gravity removed, add it back
              Float32 accelerations[3];
-             accelerations[0] = (Float32) motion.userAcceleration.x;
-             accelerations[1] = (Float32) motion.userAcceleration.y;
-             accelerations[2] = (Float32) motion.userAcceleration.z;
+             accelerations[0] = (Float32) motion.userAcceleration.x + motion.gravity.x;
+             accelerations[1] = (Float32) motion.userAcceleration.y + motion.gravity.y;
+             accelerations[2] = (Float32) motion.userAcceleration.z + motion.gravity.z;
              
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
