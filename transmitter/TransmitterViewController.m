@@ -253,8 +253,8 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              // the userAcceleration is corrected with gravity removed, add it back
              Float32 accelerations[3];
              accelerations[0] = (Float32) motion.userAcceleration.x + motion.gravity.x;
-             accelerations[1] = (Float32) motion.userAcceleration.y + motion.gravity.y;
-             accelerations[2] = (Float32) motion.userAcceleration.z + motion.gravity.z;
+             accelerations[1] = (Float32) motion.userAcceleration.z + motion.gravity.z;
+             accelerations[2] = (Float32) motion.userAcceleration.y + motion.gravity.y;
              
              // append the three floats for acceleration
              [sensorData appendBytes:accelerations length:sizeof(accelerations)];
