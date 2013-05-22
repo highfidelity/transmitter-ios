@@ -19,6 +19,11 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
     TransmitterPairStatePaired
 };
 
+struct NormalizedTouchPoint {
+    UInt16 x;
+    UInt16 y;
+};
+
 @interface TransmitterViewController () <AsyncUdpSocketDelegate>
 
 @property (strong, nonatomic) CMMotionManager *motionManager;
@@ -31,6 +36,7 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
 @property (weak, nonatomic) IBOutlet UILabel *pairedInfoLabel;
 @property (nonatomic) UInt16 interfacePort;
 @property (nonatomic) TransmitterPairState currentState;
+@property (nonatomic) struct NormalizedTouchPoint lastTouchPoint;
 
 @end
 
@@ -235,6 +241,10 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
 - (void)startMotionUpdates {
     self.currentState = TransmitterPairStatePaired;
     
+    // reset our normalized touch point
+    struct NormalizedTouchPoint zeroPoint = {};
+    self.lastTouchPoint = zeroPoint;
+    
     if (!self.motionManager.isDeviceMotionActive) {
         NSLog(@"Staring device motion updates now");
         
@@ -280,18 +290,23 @@ typedef NS_ENUM(NSUInteger, TransmitterPairState) {
              
              // send the state of touch, include point if finger is down
              CGPoint longPressPoint = [self.longPressRecognizer locationInView:self.view];
+             struct NormalizedTouchPoint normalizedTouchPoint;
              
              if (!isnan(longPressPoint.x)) {
-                 uint16_t touchPoints[2];
-                 touchPoints[0] = (uint16_t) ((longPressPoint.x / self.view.frame.size.width) * UINT16_MAX);
-                 touchPoints[1] = (uint16_t) (((self.view.frame.size.height - longPressPoint.y) /
-                                              self.view.frame.size.height) * UINT16_MAX);
-                 
                  [sensorData appendBytes:&TRANSMITTER_TOUCH_DOWN_SEPARATOR length:sizeof(TRANSMITTER_TOUCH_DOWN_SEPARATOR)];
-                 [sensorData appendBytes:touchPoints length:sizeof(touchPoints)];                 
+                 
+                 normalizedTouchPoint.x = (UInt16) ((longPressPoint.x / self.view.frame.size.width) * UINT16_MAX);
+                 normalizedTouchPoint.y = (UInt16) (((self.view.frame.size.height - longPressPoint.y) /
+                                               self.view.frame.size.height) * UINT16_MAX);
+                 
+                 self.lastTouchPoint = normalizedTouchPoint;
              } else {
                  [sensorData appendBytes:&TRANSMITTER_TOUCH_UP_SEPARATOR length:sizeof(TRANSMITTER_TOUCH_UP_SEPARATOR)];
+                 normalizedTouchPoint = self.lastTouchPoint;
              }
+                          
+             [sensorData appendBytes:&normalizedTouchPoint.x length:sizeof(normalizedTouchPoint.x)];
+             [sensorData appendBytes:&normalizedTouchPoint.y length:sizeof(normalizedTouchPoint.y)];
              
              dispatch_async(dispatch_get_main_queue(), ^{
                  // grab the state of the long press recognizer
