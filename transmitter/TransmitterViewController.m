@@ -7,6 +7,7 @@
 //
 
 #import <CoreMotion/CoreMotion.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <ifaddrs.h>
 #include <arpa/inet.h>
@@ -37,6 +38,7 @@ struct NormalizedTouchPoint {
 @property (weak, nonatomic) IBOutlet UIImageView *topPentagonImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *bottomPentagonImageView;
 @property (weak, nonatomic) IBOutlet UILabel *pairedInfoLabel;
+@property (weak, nonatomic) IBOutlet UIImageView *indicatorImageView;
 @property (nonatomic) UInt16 interfacePort;
 @property (nonatomic) TransmitterPairState currentState;
 @property (nonatomic) struct NormalizedTouchPoint lastTouchPoint;
@@ -91,7 +93,7 @@ struct NormalizedTouchPoint {
 
 - (UILongPressGestureRecognizer *)longPressRecognizer {
     if (!_longPressRecognizer) {
-        _longPressRecognizer = [[UILongPressGestureRecognizer alloc] init];
+        _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
         _longPressRecognizer.minimumPressDuration = 0.01;
     }
     
@@ -340,6 +342,28 @@ struct NormalizedTouchPoint {
                  }
              });             
          }];
+    }
+}
+
+#pragma mark - UILongPressGestureRecognizer
+
+- (void)handleLongPress:(UILongPressGestureRecognizer *)longPressRecognizer {
+    if (longPressRecognizer.state == UIGestureRecognizerStateBegan || longPressRecognizer.state == UIGestureRecognizerStateChanged) {
+        
+        if (longPressRecognizer.state == UIGestureRecognizerStateBegan) {
+            self.indicatorImageView.hidden = NO;
+        }
+        
+        // move the indicatorImageView to the right spot
+        const float TOUCH_POINT_Y_PUSH_UP_OFFSET = 10.0f;
+        
+        CGPoint touchPoint = [longPressRecognizer locationInView:self.view];
+        touchPoint.y -= TOUCH_POINT_Y_PUSH_UP_OFFSET;
+        
+        self.indicatorImageView.center = touchPoint;
+    } else {
+        self.indicatorImageView.hidden = YES;
+        [self.indicatorImageView.layer removeAllAnimations];
     }
 }
 
