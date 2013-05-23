@@ -7,9 +7,12 @@
 //
 
 #import <CoreMotion/CoreMotion.h>
-#import <AsyncUdpSocket.h>
+
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+
+#import <AsyncUdpSocket.h>
+#import <Reachability.h>
 
 #import "TransmitterViewController.h"
 
@@ -202,18 +205,34 @@ struct NormalizedTouchPoint {
         // flip the pair button back to the right state
         self.currentState = TransmitterPairStateSleeping;
     } else {
-        NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
-        UInt16 const PAIRING_SERVER_PORT = 7247;
-        NSTimeInterval const PAIRING_RECEIVE_TIMEOUT = 5 * 60;
+        // make sure the device is on wifi before sending the pair request
+        Reachability *reachability = [Reachability reachabilityForLocalWiFi];
+        [reachability startNotifier];
         
-        [self.transmitterSocket sendData:[self pairRequestData]
-                                  toHost:PAIRING_SERVER_ADDRESS
-                                    port:PAIRING_SERVER_PORT
-                             withTimeout:30
-                                     tag:0];
-        [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
-        
-        self.currentState = TransmitterPairStatePairing;
+        if (reachability.isReachableViaWiFi) {
+            NSString* const PAIRING_SERVER_ADDRESS = @"pairing.highfidelity.io";
+            UInt16 const PAIRING_SERVER_PORT = 7247;
+            NSTimeInterval const PAIRING_RECEIVE_TIMEOUT = 5 * 60;
+            
+            [self.transmitterSocket sendData:[self pairRequestData]
+                                      toHost:PAIRING_SERVER_ADDRESS
+                                        port:PAIRING_SERVER_PORT
+                                 withTimeout:30
+                                         tag:0];
+            [self.transmitterSocket receiveWithTimeout:PAIRING_RECEIVE_TIMEOUT tag:0];
+            
+            self.currentState = TransmitterPairStatePairing;
+        } else {
+            // create and show an alert to the user that tells them they need to be on wifi
+            NSString *alertMessage = @"You need to be on a wifi network for the transmitter to work.";
+            UIAlertView *noWifiAlert = [[UIAlertView alloc] initWithTitle:@"Oh no!"
+                                                                  message:alertMessage
+                                                                 delegate:nil
+                                                        cancelButtonTitle:@"OK"
+                                                        otherButtonTitles:nil];
+            
+            [noWifiAlert show];
+        }
     }
 }
 
@@ -246,7 +265,7 @@ struct NormalizedTouchPoint {
     self.lastTouchPoint = zeroPoint;
     
     if (!self.motionManager.isDeviceMotionActive) {
-        NSLog(@"Staring device motion updates now");
+        NSLog(@"Starting device motion updates now");
         
         // start device motion updates
         [self.motionManager startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
